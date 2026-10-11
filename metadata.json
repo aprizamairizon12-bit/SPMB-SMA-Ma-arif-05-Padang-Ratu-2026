@@ -1,0 +1,6 @@
+{
+  "name": "SPMB Online SMA Ma'arif 05 Padang Ratu",
+  "description": "Sistem Penerimaan Murid Baru (SPMB) Online Resmi SMA Ma'arif 05 Padang Ratu. Pendaftaran Gratis 100%, Pengaturan Tahun Ajaran Dinamis, dan Terintegrasi Cloud.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,500 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // =========================================================================
+    // PRIMITIVE HELPERS
+    // =========================================================================
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isBootstrappedSuperAdmin() {
+      return isVerifiedUser() && request.auth.token.email == 'aprizamairizon12@gmail.com';
+    }
+
+    function hasAdminDoc() {
+      return isVerifiedUser() &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isActive == true;
+    }
+
+    function getAdminRole() {
+      return get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role;
+    }
+
+    function isSuperAdmin() {
+      return isBootstrappedSuperAdmin() || (hasAdminDoc() && getAdminRole() == 'Super Admin');
+    }
+
+    function isAdminSpmb() {
+      return isSuperAdmin() || (hasAdminDoc() && getAdminRole() == 'Admin SPMB');
+    }
+
+    function isCommitteeOrAdmin() {
+      return isAdminSpmb() || (hasAdminDoc() && getAdminRole() == 'Panitia SPMB');
+    }
+
+    function isAdminOrStaff() {
+      return isCommitteeOrAdmin() || (hasAdminDoc() && getAdminRole() == 'Kepala Sekolah');
+    }
+
+    // =========================================================================
+    // VALIDATION BLUEPRINTS
+    // =========================================================================
+
+    function isValidSchoolConfig(data) {
+      return data.keys().hasAll([
+        'officialName', 'shortName', 'npsn', 'address', 'village', 'district',
+        'regency', 'province', 'postalCode', 'phone', 'whatsapp', 'email',
+        'principalName', 'principalNip', 'committeeHeadName', 'logoUrl',
+        'heroBannerUrl', 'history', 'vision', 'mission', 'mapUrl',
+        'facebookUrl', 'instagramUrl', 'youtubeUrl', 'activeYearLabel',
+        'isRegistrationOpen', 'openDate', 'closeDate', 'announcementDate', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'officialName', 'shortName', 'npsn', 'address', 'village', 'district',
+        'regency', 'province', 'postalCode', 'phone', 'whatsapp', 'email',
+        'principalName', 'principalNip', 'committeeHeadName', 'logoUrl',
+        'heroBannerUrl', 'history', 'vision', 'mission', 'mapUrl',
+        'facebookUrl', 'instagramUrl', 'youtubeUrl', 'activeYearLabel',
+        'isRegistrationOpen', 'openDate', 'closeDate', 'announcementDate', 'updatedAt'
+      ]) &&
+      data.officialName is string && data.officialName.size() >= 1 && data.officialName.size() <= 200 &&
+      data.shortName is string && data.shortName.size() <= 100 &&
+      data.npsn is string && data.npsn.size() <= 30 &&
+      data.address is string && data.address.size() <= 500 &&
+      data.village is string && data.village.size() <= 100 &&
+      data.district is string && data.district.size() <= 100 &&
+      data.regency is string && data.regency.size() <= 100 &&
+      data.province is string && data.province.size() <= 100 &&
+      data.postalCode is string && data.postalCode.size() <= 20 &&
+      data.phone is string && data.phone.size() <= 50 &&
+      data.whatsapp is string && data.whatsapp.size() <= 50 &&
+      data.email is string && data.email.size() <= 150 &&
+      data.principalName is string && data.principalName.size() <= 150 &&
+      data.principalNip is string && data.principalNip.size() <= 50 &&
+      data.committeeHeadName is string && data.committeeHeadName.size() <= 150 &&
+      data.logoUrl is string && data.logoUrl.size() <= 2000 &&
+      data.heroBannerUrl is string && data.heroBannerUrl.size() <= 2000 &&
+      data.history is string && data.history.size() <= 5000 &&
+      data.vision is string && data.vision.size() <= 2000 &&
+      data.mission is string && data.mission.size() <= 4000 &&
+      data.mapUrl is string && data.mapUrl.size() <= 1500 &&
+      data.facebookUrl is string && data.facebookUrl.size() <= 500 &&
+      data.instagramUrl is string && data.instagramUrl.size() <= 500 &&
+      data.youtubeUrl is string && data.youtubeUrl.size() <= 500 &&
+      data.activeYearLabel is string && data.activeYearLabel.size() >= 4 && data.activeYearLabel.size() <= 20 &&
+      data.isRegistrationOpen is bool &&
+      data.openDate is string && data.openDate.size() <= 40 &&
+      data.closeDate is string && data.closeDate.size() <= 40 &&
+      data.announcementDate is string && data.announcementDate.size() <= 40 &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidAcademicYear(data) {
+      return data.keys().hasAll([
+        'yearLabel', 'isActive', 'isPublicDisplay', 'registrationStatus',
+        'openDate', 'closeDate', 'announcementDate', 'quota', 'notes',
+        'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'yearLabel', 'isActive', 'isPublicDisplay', 'registrationStatus',
+        'openDate', 'closeDate', 'announcementDate', 'quota', 'notes',
+        'createdAt', 'updatedAt'
+      ]) &&
+      data.yearLabel is string && data.yearLabel.size() >= 4 && data.yearLabel.size() <= 20 &&
+      data.isActive is bool &&
+      data.isPublicDisplay is bool &&
+      data.registrationStatus is string && data.registrationStatus.size() <= 20 &&
+      (data.registrationStatus == 'open' || data.registrationStatus == 'closed' || data.registrationStatus == 'scheduled') &&
+      data.openDate is string && data.openDate.size() <= 40 &&
+      data.closeDate is string && data.closeDate.size() <= 40 &&
+      data.announcementDate is string && data.announcementDate.size() <= 40 &&
+      data.quota is number && data.quota >= 0 && data.quota <= 10000 &&
+      data.notes is string && data.notes.size() <= 1000 &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidSchoolItem(data) {
+      return data.keys().hasAll([
+        'category', 'title', 'description', 'imageUrl', 'order',
+        'isActive', 'isRequired', 'fieldType', 'maxSizeKb', 'academicYear',
+        'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'category', 'title', 'description', 'imageUrl', 'order',
+        'isActive', 'isRequired', 'fieldType', 'maxSizeKb', 'academicYear',
+        'createdAt', 'updatedAt'
+      ]) &&
+      data.category is string && data.category.size() <= 40 &&
+      (
+        data.category == 'program' ||
+        data.category == 'facility' ||
+        data.category == 'extracurricular' ||
+        data.category == 'achievement' ||
+        data.category == 'gallery' ||
+        data.category == 'custom_field' ||
+        data.category == 'doc_requirement'
+      ) &&
+      data.title is string && data.title.size() >= 1 && data.title.size() <= 200 &&
+      data.description is string && data.description.size() <= 2000 &&
+      data.imageUrl is string && data.imageUrl.size() <= 2000 &&
+      data.order is number && data.order >= 0 && data.order <= 10000 &&
+      data.isActive is bool &&
+      data.isRequired is bool &&
+      data.fieldType is string && data.fieldType.size() <= 100 &&
+      data.maxSizeKb is number && data.maxSizeKb >= 0 && data.maxSizeKb <= 50000 &&
+      data.academicYear is string && data.academicYear.size() <= 20 &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidAnnouncement(data) {
+      return data.keys().hasAll([
+        'title', 'content', 'imageUrl', 'publishDate', 'isPublished',
+        'academicYear', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'title', 'content', 'imageUrl', 'publishDate', 'isPublished',
+        'academicYear', 'createdAt', 'updatedAt'
+      ]) &&
+      data.title is string && data.title.size() >= 1 && data.title.size() <= 200 &&
+      data.content is string && data.content.size() <= 5000 &&
+      data.imageUrl is string && data.imageUrl.size() <= 2000 &&
+      data.publishDate is string && data.publishDate.size() <= 40 &&
+      data.isPublished is bool &&
+      data.academicYear is string && data.academicYear.size() <= 20 &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidApplicantStatus(status) {
+      return status is string && status.size() <= 40 && (
+        status == 'Menunggu verifikasi' ||
+        status == 'Perlu perbaikan data' ||
+        status == 'Terverifikasi' ||
+        status == 'Diterima' ||
+        status == 'Tidak diterima'
+      );
+    }
+
+    function isValidApplicant(data) {
+      return data.keys().hasAll([
+        'regNumber', 'academicYear', 'fullName', 'nik', 'nisn', 'gender',
+        'birthPlace', 'birthDate', 'religion', 'address', 'village',
+        'district', 'regency', 'province', 'postalCode', 'phone', 'email',
+        'fatherName', 'fatherJob', 'fatherPhone', 'motherName', 'motherJob',
+        'motherPhone', 'guardianName', 'guardianJob', 'parentAddress',
+        'previousSchool', 'previousSchoolNpsn', 'previousSchoolAddress',
+        'graduationYear', 'certificateNumber', 'customDataSummary',
+        'status', 'verificationNotes', 'docCompleteCount', 'docTotalRequired',
+        'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'regNumber', 'academicYear', 'fullName', 'nik', 'nisn', 'gender',
+        'birthPlace', 'birthDate', 'religion', 'address', 'village',
+        'district', 'regency', 'province', 'postalCode', 'phone', 'email',
+        'fatherName', 'fatherJob', 'fatherPhone', 'motherName', 'motherJob',
+        'motherPhone', 'guardianName', 'guardianJob', 'parentAddress',
+        'previousSchool', 'previousSchoolNpsn', 'previousSchoolAddress',
+        'graduationYear', 'certificateNumber', 'customDataSummary',
+        'status', 'verificationNotes', 'docCompleteCount', 'docTotalRequired',
+        'createdAt', 'updatedAt'
+      ]) &&
+      data.regNumber is string && data.regNumber.size() >= 5 && data.regNumber.size() <= 40 && data.regNumber.matches('^[a-zA-Z0-9_\\-]+$') &&
+      data.academicYear is string && data.academicYear.size() >= 4 && data.academicYear.size() <= 20 &&
+      data.fullName is string && data.fullName.size() >= 2 && data.fullName.size() <= 150 &&
+      data.nik is string && data.nik.size() >= 8 && data.nik.size() <= 20 &&
+      data.nisn is string && data.nisn.size() >= 5 && data.nisn.size() <= 20 &&
+      data.gender is string && data.gender.size() <= 20 && (data.gender == 'Laki-laki' || data.gender == 'Perempuan') &&
+      data.birthPlace is string && data.birthPlace.size() >= 1 && data.birthPlace.size() <= 100 &&
+      data.birthDate is string && data.birthDate.size() >= 4 && data.birthDate.size() <= 20 &&
+      data.religion is string && data.religion.size() <= 40 &&
+      data.address is string && data.address.size() <= 500 &&
+      data.village is string && data.village.size() <= 100 &&
+      data.district is string && data.district.size() <= 100 &&
+      data.regency is string && data.regency.size() <= 100 &&
+      data.province is string && data.province.size() <= 100 &&
+      data.postalCode is string && data.postalCode.size() <= 20 &&
+      data.phone is string && data.phone.size() <= 30 &&
+      data.email is string && data.email.size() <= 150 &&
+      data.fatherName is string && data.fatherName.size() <= 150 &&
+      data.fatherJob is string && data.fatherJob.size() <= 100 &&
+      data.fatherPhone is string && data.fatherPhone.size() <= 30 &&
+      data.motherName is string && data.motherName.size() <= 150 &&
+      data.motherJob is string && data.motherJob.size() <= 100 &&
+      data.motherPhone is string && data.motherPhone.size() <= 30 &&
+      data.guardianName is string && data.guardianName.size() <= 150 &&
+      data.guardianJob is string && data.guardianJob.size() <= 100 &&
+      data.parentAddress is string && data.parentAddress.size() <= 500 &&
+      data.previousSchool is string && data.previousSchool.size() >= 2 && data.previousSchool.size() <= 150 &&
+      data.previousSchoolNpsn is string && data.previousSchoolNpsn.size() <= 30 &&
+      data.previousSchoolAddress is string && data.previousSchoolAddress.size() <= 500 &&
+      data.graduationYear is string && data.graduationYear.size() <= 10 &&
+      data.certificateNumber is string && data.certificateNumber.size() <= 100 &&
+      data.customDataSummary is string && data.customDataSummary.size() <= 2000 &&
+      isValidApplicantStatus(data.status) &&
+      data.verificationNotes is string && data.verificationNotes.size() <= 1000 &&
+      data.docCompleteCount is number && data.docCompleteCount >= 0 && data.docCompleteCount <= 50 &&
+      data.docTotalRequired is number && data.docTotalRequired >= 0 && data.docTotalRequired <= 50 &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidApplicantStatusLookup(data) {
+      return data.keys().hasAll([
+        'applicantId', 'regNumber', 'academicYear', 'fullName', 'nisn',
+        'birthDate', 'previousSchool', 'status', 'verificationNotes',
+        'docCompleteCount', 'docTotalRequired', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'applicantId', 'regNumber', 'academicYear', 'fullName', 'nisn',
+        'birthDate', 'previousSchool', 'status', 'verificationNotes',
+        'docCompleteCount', 'docTotalRequired', 'createdAt', 'updatedAt'
+      ]) &&
+      isValidId(data.applicantId) &&
+      data.regNumber is string && data.regNumber.size() >= 5 && data.regNumber.size() <= 40 &&
+      data.academicYear is string && data.academicYear.size() >= 4 && data.academicYear.size() <= 20 &&
+      data.fullName is string && data.fullName.size() >= 2 && data.fullName.size() <= 150 &&
+      data.nisn is string && data.nisn.size() >= 5 && data.nisn.size() <= 20 &&
+      data.birthDate is string && data.birthDate.size() >= 4 && data.birthDate.size() <= 20 &&
+      data.previousSchool is string && data.previousSchool.size() >= 2 && data.previousSchool.size() <= 150 &&
+      isValidApplicantStatus(data.status) &&
+      data.verificationNotes is string && data.verificationNotes.size() <= 1000 &&
+      data.docCompleteCount is number && data.docCompleteCount >= 0 && data.docCompleteCount <= 50 &&
+      data.docTotalRequired is number && data.docTotalRequired >= 0 && data.docTotalRequired <= 50 &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidApplicantDocument(data) {
+      return data.keys().hasAll([
+        'applicantId', 'regNumber', 'academicYear', 'docType', 'docLabel',
+        'fileName', 'mimeType', 'fileSize', 'storagePath', 'fileDataUrl',
+        'verificationStatus', 'adminNote', 'uploadedAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'applicantId', 'regNumber', 'academicYear', 'docType', 'docLabel',
+        'fileName', 'mimeType', 'fileSize', 'storagePath', 'fileDataUrl',
+        'verificationStatus', 'adminNote', 'uploadedAt', 'updatedAt'
+      ]) &&
+      isValidId(data.applicantId) &&
+      data.regNumber is string && data.regNumber.size() >= 5 && data.regNumber.size() <= 40 &&
+      data.academicYear is string && data.academicYear.size() >= 4 && data.academicYear.size() <= 20 &&
+      data.docType is string && data.docType.size() >= 1 && data.docType.size() <= 100 &&
+      data.docLabel is string && data.docLabel.size() >= 1 && data.docLabel.size() <= 150 &&
+      data.fileName is string && data.fileName.size() >= 1 && data.fileName.size() <= 200 &&
+      data.mimeType is string && data.mimeType.size() >= 3 && data.mimeType.size() <= 100 &&
+      data.fileSize is number && data.fileSize >= 0 && data.fileSize <= 10485760 &&
+      data.storagePath is string && data.storagePath.size() <= 500 &&
+      data.fileDataUrl is string && data.fileDataUrl.size() <= 750000 &&
+      data.verificationStatus is string && data.verificationStatus.size() <= 30 &&
+      (data.verificationStatus == 'Menunggu' || data.verificationStatus == 'Valid' || data.verificationStatus == 'Perlu Perbaikan') &&
+      data.adminNote is string && data.adminNote.size() <= 500 &&
+      data.uploadedAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidAdminUser(data) {
+      return data.keys().hasAll([
+        'uid', 'email', 'fullName', 'role', 'isActive', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'uid', 'email', 'fullName', 'role', 'isActive', 'createdAt', 'updatedAt'
+      ]) &&
+      isValidId(data.uid) &&
+      data.email is string && data.email.size() >= 3 && data.email.size() <= 150 &&
+      data.fullName is string && data.fullName.size() >= 1 && data.fullName.size() <= 150 &&
+      data.role is string && data.role.size() <= 40 &&
+      (data.role == 'Super Admin' || data.role == 'Admin SPMB' || data.role == 'Panitia SPMB' || data.role == 'Kepala Sekolah') &&
+      data.isActive is bool &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidAuditLog(data) {
+      return data.keys().hasAll([
+        'actorUid', 'actorEmail', 'actorRole', 'action', 'targetId',
+        'details', 'academicYear', 'createdAt'
+      ]) &&
+      data.keys().hasOnly([
+        'actorUid', 'actorEmail', 'actorRole', 'action', 'targetId',
+        'details', 'academicYear', 'createdAt'
+      ]) &&
+      isValidId(data.actorUid) &&
+      data.actorUid == request.auth.uid &&
+      data.actorEmail is string && data.actorEmail.size() <= 150 &&
+      data.actorRole is string && data.actorRole.size() <= 40 &&
+      data.action is string && data.action.size() >= 1 && data.action.size() <= 150 &&
+      data.targetId is string && data.targetId.size() <= 128 &&
+      data.details is string && data.details.size() <= 1000 &&
+      data.academicYear is string && data.academicYear.size() <= 20 &&
+      data.createdAt is timestamp;
+    }
+
+    // =========================================================================
+    // COLLECTION RULES
+    // =========================================================================
+
+    match /school_config/{configId} {
+      allow get: if isValidId(configId);
+      allow list: if isAdminOrStaff();
+      allow create: if isValidId(configId) && isValidSchoolConfig(incoming()) && incoming().updatedAt == request.time && isAdminSpmb();
+      allow update: if isValidId(configId) && isValidSchoolConfig(incoming()) && incoming().updatedAt == request.time && isAdminSpmb();
+      allow delete: if isValidId(configId) && isSuperAdmin();
+    }
+
+    match /academic_years/{yearId} {
+      allow get: if isValidId(yearId);
+      allow list: if resource.data.isPublicDisplay == true || isAdminOrStaff();
+      allow create: if isValidId(yearId) && isValidAcademicYear(incoming()) && incoming().createdAt == request.time && incoming().updatedAt == request.time && isAdminSpmb();
+      allow update: if isValidId(yearId) && isValidAcademicYear(incoming()) && incoming().createdAt == existing().createdAt && incoming().updatedAt == request.time && isAdminSpmb();
+      allow delete: if isValidId(yearId) && isSuperAdmin();
+    }
+
+    match /school_items/{itemId} {
+      allow get: if isValidId(itemId);
+      allow list: if resource.data.isActive == true || isAdminOrStaff();
+      allow create: if isValidId(itemId) && isValidSchoolItem(incoming()) && incoming().createdAt == request.time && incoming().updatedAt == request.time && isAdminSpmb();
+      allow update: if isValidId(itemId) && isValidSchoolItem(incoming()) && incoming().createdAt == existing().createdAt && incoming().updatedAt == request.time && isAdminSpmb();
+      allow delete: if isValidId(itemId) && isAdminSpmb();
+    }
+
+    match /announcements/{announcementId} {
+      allow get: if isValidId(announcementId);
+      allow list: if resource.data.isPublished == true || isAdminOrStaff();
+      allow create: if isValidId(announcementId) && isValidAnnouncement(incoming()) && incoming().createdAt == request.time && incoming().updatedAt == request.time && isAdminSpmb();
+      allow update: if isValidId(announcementId) && isValidAnnouncement(incoming()) && incoming().createdAt == existing().createdAt && incoming().updatedAt == request.time && isAdminSpmb();
+      allow delete: if isValidId(announcementId) && isAdminSpmb();
+    }
+
+    match /applicants/{applicantId} {
+      // Strictly isolated PII: only authorized school staff can read full applicant records
+      allow get: if isValidId(applicantId) && isAdminOrStaff();
+      allow list: if isAdminOrStaff();
+      // Public prospective students can submit a new registration if valid and initial status is 'Menunggu verifikasi'
+      allow create: if isValidId(applicantId) &&
+        isValidApplicant(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        (
+          incoming().status == 'Menunggu verifikasi' ||
+          isCommitteeOrAdmin()
+        );
+      allow update: if isValidId(applicantId) &&
+        isValidApplicant(incoming()) &&
+        incoming().regNumber == existing().regNumber &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        isCommitteeOrAdmin();
+      allow delete: if isValidId(applicantId) && isSuperAdmin();
+    }
+
+    match /applicant_status_lookup/{lookupId} {
+      // Prospective students can check their own status via exact lookupId (regNumber_birthDate); public list is forbidden
+      allow get: if isValidId(lookupId);
+      allow list: if isAdminOrStaff();
+      allow create: if isValidId(lookupId) &&
+        isValidApplicantStatusLookup(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        existsAfter(/databases/$(database)/documents/applicants/$(incoming().applicantId));
+      allow update: if isValidId(lookupId) &&
+        isValidApplicantStatusLookup(incoming()) &&
+        incoming().applicantId == existing().applicantId &&
+        incoming().regNumber == existing().regNumber &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        isCommitteeOrAdmin();
+      allow delete: if isValidId(lookupId) && isSuperAdmin();
+    }
+
+    match /applicant_documents/{docId} {
+      // Private documents are strictly protected from public read
+      allow get: if isValidId(docId) && isAdminOrStaff();
+      allow list: if isAdminOrStaff();
+      // Prospective students can upload/replace documents when registering or when status is 'Perlu perbaikan data'
+      allow create: if isValidId(docId) &&
+        isValidApplicantDocument(incoming()) &&
+        incoming().uploadedAt == request.time &&
+        incoming().updatedAt == request.time &&
+        (
+          (
+            incoming().verificationStatus == 'Menunggu' &&
+            existsAfter(/databases/$(database)/documents/applicants/$(incoming().applicantId))
+          ) ||
+          isCommitteeOrAdmin()
+        );
+      allow update: if isValidId(docId) &&
+        isValidApplicantDocument(incoming()) &&
+        incoming().applicantId == existing().applicantId &&
+        incoming().regNumber == existing().regNumber &&
+        incoming().updatedAt == request.time &&
+        (
+          isCommitteeOrAdmin() ||
+          (
+            incoming().verificationStatus == 'Menunggu' &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['fileName', 'mimeType', 'fileSize', 'storagePath', 'fileDataUrl', 'verificationStatus', 'updatedAt']) &&
+            get(/databases/$(database)/documents/applicants/$(existing().applicantId)).data.status == 'Perlu perbaikan data'
+          )
+        );
+      allow delete: if isValidId(docId) && isAdminSpmb();
+    }
+
+    match /admins/{adminUid} {
+      allow get: if isValidId(adminUid) && (
+        (isVerifiedUser() && request.auth.uid == adminUid) ||
+        isAdminOrStaff()
+      );
+      allow list: if isAdminOrStaff();
+      allow create: if isValidId(adminUid) &&
+        isValidAdminUser(incoming()) &&
+        incoming().uid == adminUid &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        isSuperAdmin();
+      allow update: if isValidId(adminUid) &&
+        isValidAdminUser(incoming()) &&
+        incoming().uid == existing().uid &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        isSuperAdmin();
+      allow delete: if isValidId(adminUid) && isSuperAdmin();
+    }
+
+    match /audit_logs/{logId} {
+      allow get: if isValidId(logId) && isAdminOrStaff();
+      allow list: if isAdminOrStaff();
+      allow create: if isValidId(logId) &&
+        isValidAuditLog(incoming()) &&
+        incoming().createdAt == request.time &&
+        isAdminOrStaff();
+      allow update, delete: if false;
+    }
+  }
+}

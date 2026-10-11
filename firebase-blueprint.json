@@ -1,0 +1,425 @@
+{
+  "entities": {
+    "SchoolConfig": {
+      "title": "SchoolConfig",
+      "description": "Main configuration and identity for SMA Ma'arif 05 Padang Ratu and active SPMB settings.",
+      "type": "object",
+      "properties": {
+        "officialName": { "type": "string", "maxLength": 200 },
+        "shortName": { "type": "string", "maxLength": 100 },
+        "npsn": { "type": "string", "maxLength": 30 },
+        "address": { "type": "string", "maxLength": 500 },
+        "village": { "type": "string", "maxLength": 100 },
+        "district": { "type": "string", "maxLength": 100 },
+        "regency": { "type": "string", "maxLength": 100 },
+        "province": { "type": "string", "maxLength": 100 },
+        "postalCode": { "type": "string", "maxLength": 20 },
+        "phone": { "type": "string", "maxLength": 50 },
+        "whatsapp": { "type": "string", "maxLength": 50 },
+        "email": { "type": "string", "maxLength": 150 },
+        "principalName": { "type": "string", "maxLength": 150 },
+        "principalNip": { "type": "string", "maxLength": 50 },
+        "committeeHeadName": { "type": "string", "maxLength": 150 },
+        "logoUrl": { "type": "string", "maxLength": 600000 },
+        "heroBannerUrl": { "type": "string", "maxLength": 600000 },
+        "history": { "type": "string", "maxLength": 5000 },
+        "vision": { "type": "string", "maxLength": 2000 },
+        "mission": { "type": "string", "maxLength": 4000 },
+        "mapUrl": { "type": "string", "maxLength": 1500 },
+        "facebookUrl": { "type": "string", "maxLength": 500 },
+        "instagramUrl": { "type": "string", "maxLength": 500 },
+        "youtubeUrl": { "type": "string", "maxLength": 500 },
+        "activeYearLabel": { "type": "string", "maxLength": 20 },
+        "isRegistrationOpen": { "type": "boolean" },
+        "openDate": { "type": "string", "maxLength": 40 },
+        "closeDate": { "type": "string", "maxLength": 40 },
+        "announcementDate": { "type": "string", "maxLength": 40 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "officialName",
+        "shortName",
+        "npsn",
+        "address",
+        "village",
+        "district",
+        "regency",
+        "province",
+        "postalCode",
+        "phone",
+        "whatsapp",
+        "email",
+        "principalName",
+        "principalNip",
+        "committeeHeadName",
+        "logoUrl",
+        "heroBannerUrl",
+        "history",
+        "vision",
+        "mission",
+        "mapUrl",
+        "facebookUrl",
+        "instagramUrl",
+        "youtubeUrl",
+        "activeYearLabel",
+        "isRegistrationOpen",
+        "openDate",
+        "closeDate",
+        "announcementDate",
+        "updatedAt"
+      ]
+    },
+    "AcademicYear": {
+      "title": "AcademicYear",
+      "description": "Dynamic academic year and SPMB period configuration.",
+      "type": "object",
+      "properties": {
+        "yearLabel": { "type": "string", "maxLength": 20 },
+        "isActive": { "type": "boolean" },
+        "isPublicDisplay": { "type": "boolean" },
+        "registrationStatus": { "type": "string", "enum": ["open", "closed", "scheduled"], "maxLength": 20 },
+        "openDate": { "type": "string", "maxLength": 40 },
+        "closeDate": { "type": "string", "maxLength": 40 },
+        "announcementDate": { "type": "string", "maxLength": 40 },
+        "quota": { "type": "number" },
+        "notes": { "type": "string", "maxLength": 1000 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "yearLabel",
+        "isActive",
+        "isPublicDisplay",
+        "registrationStatus",
+        "openDate",
+        "closeDate",
+        "announcementDate",
+        "quota",
+        "notes",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SchoolItem": {
+      "title": "SchoolItem",
+      "description": "Configurable school items: featured programs, facilities, extracurriculars, achievements, gallery media, custom form fields, and document requirements.",
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string",
+          "enum": ["program", "facility", "extracurricular", "achievement", "gallery", "custom_field", "doc_requirement"],
+          "maxLength": 40
+        },
+        "title": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 2000 },
+        "imageUrl": { "type": "string", "maxLength": 600000 },
+        "order": { "type": "number" },
+        "isActive": { "type": "boolean" },
+        "isRequired": { "type": "boolean" },
+        "fieldType": { "type": "string", "maxLength": 100 },
+        "maxSizeKb": { "type": "number" },
+        "academicYear": { "type": "string", "maxLength": 20 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "category",
+        "title",
+        "description",
+        "imageUrl",
+        "order",
+        "isActive",
+        "isRequired",
+        "fieldType",
+        "maxSizeKb",
+        "academicYear",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Announcement": {
+      "title": "Announcement",
+      "description": "Official SPMB announcements and selection results info.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 200 },
+        "content": { "type": "string", "maxLength": 5000 },
+        "imageUrl": { "type": "string", "maxLength": 600000 },
+        "publishDate": { "type": "string", "maxLength": 40 },
+        "isPublished": { "type": "boolean" },
+        "academicYear": { "type": "string", "maxLength": 20 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "title",
+        "content",
+        "imageUrl",
+        "publishDate",
+        "isPublished",
+        "academicYear",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Applicant": {
+      "title": "Applicant",
+      "description": "Full prospective student registration record containing PII, parent info, previous school, and verification status.",
+      "type": "object",
+      "properties": {
+        "regNumber": { "type": "string", "maxLength": 40, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "academicYear": { "type": "string", "maxLength": 20 },
+        "fullName": { "type": "string", "maxLength": 150 },
+        "nik": { "type": "string", "maxLength": 20 },
+        "nisn": { "type": "string", "maxLength": 20 },
+        "gender": { "type": "string", "enum": ["Laki-laki", "Perempuan"], "maxLength": 20 },
+        "birthPlace": { "type": "string", "maxLength": 100 },
+        "birthDate": { "type": "string", "maxLength": 20 },
+        "religion": { "type": "string", "maxLength": 40 },
+        "address": { "type": "string", "maxLength": 500 },
+        "village": { "type": "string", "maxLength": 100 },
+        "district": { "type": "string", "maxLength": 100 },
+        "regency": { "type": "string", "maxLength": 100 },
+        "province": { "type": "string", "maxLength": 100 },
+        "postalCode": { "type": "string", "maxLength": 20 },
+        "phone": { "type": "string", "maxLength": 30 },
+        "email": { "type": "string", "maxLength": 150 },
+        "fatherName": { "type": "string", "maxLength": 150 },
+        "fatherJob": { "type": "string", "maxLength": 100 },
+        "fatherPhone": { "type": "string", "maxLength": 30 },
+        "motherName": { "type": "string", "maxLength": 150 },
+        "motherJob": { "type": "string", "maxLength": 100 },
+        "motherPhone": { "type": "string", "maxLength": 30 },
+        "guardianName": { "type": "string", "maxLength": 150 },
+        "guardianJob": { "type": "string", "maxLength": 100 },
+        "parentAddress": { "type": "string", "maxLength": 500 },
+        "previousSchool": { "type": "string", "maxLength": 150 },
+        "previousSchoolNpsn": { "type": "string", "maxLength": 30 },
+        "previousSchoolAddress": { "type": "string", "maxLength": 500 },
+        "graduationYear": { "type": "string", "maxLength": 10 },
+        "certificateNumber": { "type": "string", "maxLength": 100 },
+        "customDataSummary": { "type": "string", "maxLength": 2000 },
+        "status": {
+          "type": "string",
+          "enum": ["Menunggu verifikasi", "Perlu perbaikan data", "Terverifikasi", "Diterima", "Tidak diterima"],
+          "maxLength": 40
+        },
+        "verificationNotes": { "type": "string", "maxLength": 1000 },
+        "docCompleteCount": { "type": "number" },
+        "docTotalRequired": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "regNumber",
+        "academicYear",
+        "fullName",
+        "nik",
+        "nisn",
+        "gender",
+        "birthPlace",
+        "birthDate",
+        "religion",
+        "address",
+        "village",
+        "district",
+        "regency",
+        "province",
+        "postalCode",
+        "phone",
+        "email",
+        "fatherName",
+        "fatherJob",
+        "fatherPhone",
+        "motherName",
+        "motherJob",
+        "motherPhone",
+        "guardianName",
+        "guardianJob",
+        "parentAddress",
+        "previousSchool",
+        "previousSchoolNpsn",
+        "previousSchoolAddress",
+        "graduationYear",
+        "certificateNumber",
+        "customDataSummary",
+        "status",
+        "verificationNotes",
+        "docCompleteCount",
+        "docTotalRequired",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ApplicantStatusLookup": {
+      "title": "ApplicantStatusLookup",
+      "description": "PII-isolated status lookup document keyed by regNumber_birthDate for secure prospective student status check without exposing NIK, address, or phone.",
+      "type": "object",
+      "properties": {
+        "applicantId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "regNumber": { "type": "string", "maxLength": 40 },
+        "academicYear": { "type": "string", "maxLength": 20 },
+        "fullName": { "type": "string", "maxLength": 150 },
+        "nisn": { "type": "string", "maxLength": 20 },
+        "birthDate": { "type": "string", "maxLength": 20 },
+        "previousSchool": { "type": "string", "maxLength": 150 },
+        "status": {
+          "type": "string",
+          "enum": ["Menunggu verifikasi", "Perlu perbaikan data", "Terverifikasi", "Diterima", "Tidak diterima"],
+          "maxLength": 40
+        },
+        "verificationNotes": { "type": "string", "maxLength": 1000 },
+        "docCompleteCount": { "type": "number" },
+        "docTotalRequired": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "applicantId",
+        "regNumber",
+        "academicYear",
+        "fullName",
+        "nisn",
+        "birthDate",
+        "previousSchool",
+        "status",
+        "verificationNotes",
+        "docCompleteCount",
+        "docTotalRequired",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ApplicantDocument": {
+      "title": "ApplicantDocument",
+      "description": "Metadata and secure file data/reference for uploaded student documents.",
+      "type": "object",
+      "properties": {
+        "applicantId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "regNumber": { "type": "string", "maxLength": 40 },
+        "academicYear": { "type": "string", "maxLength": 20 },
+        "docType": { "type": "string", "maxLength": 100 },
+        "docLabel": { "type": "string", "maxLength": 150 },
+        "fileName": { "type": "string", "maxLength": 200 },
+        "mimeType": { "type": "string", "maxLength": 100 },
+        "fileSize": { "type": "number" },
+        "storagePath": { "type": "string", "maxLength": 500 },
+        "fileDataUrl": { "type": "string", "maxLength": 750000 },
+        "verificationStatus": {
+          "type": "string",
+          "enum": ["Menunggu", "Valid", "Perlu Perbaikan"],
+          "maxLength": 30
+        },
+        "adminNote": { "type": "string", "maxLength": 500 },
+        "uploadedAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "applicantId",
+        "regNumber",
+        "academicYear",
+        "docType",
+        "docLabel",
+        "fileName",
+        "mimeType",
+        "fileSize",
+        "storagePath",
+        "fileDataUrl",
+        "verificationStatus",
+        "adminNote",
+        "uploadedAt",
+        "updatedAt"
+      ]
+    },
+    "AdminUser": {
+      "title": "AdminUser",
+      "description": "Authorized school staff account with role-based permissions.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "email": { "type": "string", "maxLength": 150 },
+        "fullName": { "type": "string", "maxLength": 150 },
+        "role": {
+          "type": "string",
+          "enum": ["Super Admin", "Admin SPMB", "Panitia SPMB", "Kepala Sekolah"],
+          "maxLength": 40
+        },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "uid",
+        "email",
+        "fullName",
+        "role",
+        "isActive",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Security and activity audit trail for administrative actions.",
+      "type": "object",
+      "properties": {
+        "actorUid": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "actorEmail": { "type": "string", "maxLength": 150 },
+        "actorRole": { "type": "string", "maxLength": 40 },
+        "action": { "type": "string", "maxLength": 150 },
+        "targetId": { "type": "string", "maxLength": 128 },
+        "details": { "type": "string", "maxLength": 1000 },
+        "academicYear": { "type": "string", "maxLength": 20 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "actorUid",
+        "actorEmail",
+        "actorRole",
+        "action",
+        "targetId",
+        "details",
+        "academicYear",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/school_config/{configId}": {
+      "schema": { "$ref": "#/entities/SchoolConfig" },
+      "description": "Singleton school identity and global SPMB settings."
+    },
+    "/academic_years/{yearId}": {
+      "schema": { "$ref": "#/entities/AcademicYear" },
+      "description": "Dynamic academic years and registration period configurations."
+    },
+    "/school_items/{itemId}": {
+      "schema": { "$ref": "#/entities/SchoolItem" },
+      "description": "Configurable school items, facilities, gallery, custom form fields, and document requirements."
+    },
+    "/announcements/{announcementId}": {
+      "schema": { "$ref": "#/entities/Announcement" },
+      "description": "Official SPMB announcements."
+    },
+    "/applicants/{applicantId}": {
+      "schema": { "$ref": "#/entities/Applicant" },
+      "description": "Full applicant registration records (isolated PII, accessible only to admins/staff)."
+    },
+    "/applicant_status_lookup/{lookupId}": {
+      "schema": { "$ref": "#/entities/ApplicantStatusLookup" },
+      "description": "PII-free lookup documents keyed by regNumber_birthDate for public status checking."
+    },
+    "/applicant_documents/{docId}": {
+      "schema": { "$ref": "#/entities/ApplicantDocument" },
+      "description": "Uploaded applicant document metadata and references."
+    },
+    "/admins/{adminUid}": {
+      "schema": { "$ref": "#/entities/AdminUser" },
+      "description": "Role-based access control records for Super Admin, Admin SPMB, Panitia SPMB, and Kepala Sekolah."
+    },
+    "/audit_logs/{logId}": {
+      "schema": { "$ref": "#/entities/AuditLog" },
+      "description": "Immutable security and administrative audit logs."
+    }
+  }
+}
